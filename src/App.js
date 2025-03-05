@@ -1,24 +1,24 @@
 import logo from './logo.svg';
 import './App.css';
+import ActivityList from './ActivityList';
+import { BrowserRouter as Router, Route, Routes, Link, BrowserRouter } from 'react-router-dom';
+import Home from './Home';
+import CreateActivity from './CreateActivity';
 
 function App() {
+  
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React 019283092183092183021840921840912
-        </a>
-      </header>
-    </div>
+    <BrowserRouter>
+      <div>
+        <Link to="/">Home</Link>
+      </div>
+      <p>blah blah blah</p>
+        <Link to="/randompage">Random</Link>
+      <Routes>
+        <Route exact path="/" element={<Home/>}/>
+        <Route exact path="/create" element={<CreateActivity/>}/>
+      </Routes>
+    </BrowserRouter>
   );
 }
 
