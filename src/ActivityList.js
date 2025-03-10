@@ -3,6 +3,7 @@ function ActivityList() {
         {key: "1", text: "abc"}, 
         {key: "2", text: "dfsdashrhafd"}
       ];
+    
     return (
         <div id="ActivityList">
             <h3>Activities</h3>
