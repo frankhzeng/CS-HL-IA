@@ -1,52 +1,102 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 function CreateActivity() {
-    const [activitiesInput, setActivitiesInput] = useState([{index: 0, input: ""}]);
+    const [activitiesInput, setActivitiesInput] = useState([{index: 0, input: "", minutes: 0}]);
     const [focusInput, setFocusInput] = useState(0);
-    const [checkFocus, setCheckFocus] = useState(false);
-    const handleKeyPress = (event) => {
-        console.log("event target: " + event.target.id + "\n and focusinput: " + "activity-input-"+focusInput)
-        console.log("chekcheckFocus");
-        if (checkFocus) {
-            console.log("checking focus");
-            console.log("if statement parts " + event.target.id + " " + "activity-input-"+focusInput)
-            if (event.target.id != "activity-input-"+focusInput) {
-                console.log("switching focus to " + focusInput);
-                document.getElementById("activity-input-"+focusInput).setSelectionRange(0, 0);
-            }
-            setCheckFocus(false);
+    const [isName, setIsName] = useState(true);
+    useEffect(() => { 
+        var lastEditedElement = document.getElementById("activity-input-" + (isName? "" : "minutes-") + focusInput)
+        lastEditedElement?.focus();
+    }, [activitiesInput, focusInput, isName])
+    const handleOnFocus = (event) => {
+        let eventIDNumber = (Number(event.target.id[event.target.id.length - 1]))
+        if (event.target.id === "activity-input-minutes-" + eventIDNumber) {
+            setIsName(false)
+        } else {
+            setIsName(true)
         }
-        //document.getElementById("activity-input-"+(activitiesInput[activitiesInput.length-1].focusInput)).focus()
-        if (event.key == "Enter") {
-            console.log("current focus input" + event.target.id[event.target.id.length - 1]);
-            console.log("activities input " + activitiesInput[activitiesInput.length-1].index);
-            setCheckFocus(true);
-            console.log("if statement check pressing enter");
-            console.log(Number(event.target.id[event.target.id.length - 1]))
-            console.log(activitiesInput[activitiesInput.length-1].index)
-            if (Number(event.target.id[event.target.id.length - 1]) == activitiesInput[activitiesInput.length-1].index) {
-                setActivitiesInput(prevState => [...prevState, {index: activitiesInput[activitiesInput.length-1].index+1, input: ""}]);
-                console.log("setting focus to " + activitiesInput[activitiesInput.length - 1].index+1)
-                setFocusInput(activitiesInput[activitiesInput.length - 1].index+1);
-            } else {
-                console.log("setting focus to " + (focusInput+1))
-                setFocusInput(focusInput+1)
-            }
-            console.log("checking getting element from id" + document.getElementById("activity-input-"+(activitiesInput[activitiesInput.length-1].index+1)))
-        }
-        //if (event.key=="")
+        setFocusInput(eventIDNumber)
     }
-    //setActivitiesInput([<input type="text" onKeyDown={handleKeyPress}/>])
+    const handleSubmitPress = (event) => {
+        console.log(JSON.stringify(activitiesInput));
+    }
+    const handleKeyPress = (event) => {
+        let eventTargetID = Number(event.target.id[event.target.id.length - 1]);
+        let inputValue;
+        let minutesValue;
+        if (!isName) {
+            minutesValue = event.target.value;
+            inputValue = document.getElementById("activity-input-"+ eventTargetID).value
+        } else {
+            inputValue = event.target.value;
+            minutesValue = document.getElementById("activity-input-minutes-" + eventTargetID).value;
+        }
+        setActivitiesInput(prevState => {
+            let before = prevState.slice(0, eventTargetID);
+            let current = {index: eventTargetID, input: inputValue, minutes: minutesValue}
+            let after = prevState.slice(eventTargetID+1, prevState.length)
+            if (eventTargetID === 0) {
+                if (prevState.length - eventTargetID - 1 === 0) {
+                    return [current]
+                }
+                return [current, ...after]
+            }
+            return [...before, current, ...after]
+        })
+        if (event.key === "Backspace") {
+            if (((eventTargetID !== 0) || (eventTargetID === 0 && !isName)) && inputValue.length === 0) {
+                if (isName) {
+                    setFocusInput(prevState => prevState - 1);
+                    setIsName(false);
+                } else {
+                    setIsName(true);
+                }
+            }
+        }
+        if (event.key === "Enter") {
+            let lastIndex = Number(activitiesInput[activitiesInput.length-1].index)
+            if (eventTargetID === lastIndex && !isName) {
+                setActivitiesInput(prevState => [...prevState, {index: lastIndex+1, input: ""}]);
+                setFocusInput(lastIndex+1);
+                setIsName(true)
+            } else {
+                if (isName) {
+                    setIsName(false)
+                } else {
+                    setFocusInput(eventTargetID + 1)
+                    setIsName(true)
+                }
+            }
+        }
+    }
     return (
         <div>
             <h1>Create Activity</h1>
             <form>
-                <label htmlFor="activity-name">Name:</label>
-                <input type="text" id="activity-name" name="activity-name" key={0}/>
-                <div>
+                <input type="text" id="create-activity-name" name="activity-name"/>
+                <div id="activity-input-container">
                     {activitiesInput.map((item) =>
-                        <input id={"activity-input-" + item.index} key={item.index} onKeyDown={handleKeyPress} defaultValue={item.input} type="text"/>
+                        <div>
+                            <input 
+                                id={"activity-input-" + item.index} 
+                                key={crypto.randomUUID()} 
+                                onFocus={handleOnFocus} 
+                                onKeyDown={handleKeyPress} 
+                                defaultValue={item.input} 
+                                type="text"
+                            />
+                            <input 
+                                id={"activity-input-minutes-" + item.index} 
+                                onKeyDown={handleKeyPress} 
+                                onFocus={handleOnFocus} 
+                                type="number" 
+                                key={crypto.randomUUID()} 
+                                defaultValue={item.minutes}
+                            />
+                        </div>
                     )}
                 </div>
+                <Link onClick={handleSubmitPress}>Submit</Link>
             </form>
         </div>
     );

@@ -12,8 +12,6 @@ function App() {
       <div>
         <Link to="/">Home</Link>
       </div>
-      <p>blah blah blah</p>
-        <Link to="/randompage">Random</Link>
       <Routes>
         <Route exact path="/" element={<Home/>}/>
         <Route exact path="/create" element={<CreateActivity/>}/>
