@@ -8,9 +8,8 @@ function CreateActivity() {
     const textAreaRef = useRef()
     const noNameWarningRef = useRef();
     const noTaskWarningRef = useRef();
-    useEffect(() => { 
+    useEffect(() => {
         var lastEditedElement = document.getElementById("activity-input-" + (isName? "" : "minutes-") + focusInput)
-        console.log("focusing like a bASTASRD to ", focusInput, "list: " , activitiesInput);
         lastEditedElement?.focus();
     }, [activitiesInput, focusInput, isName])
     const handleOnFocus = (event) => {
@@ -23,7 +22,6 @@ function CreateActivity() {
         setFocusInput(eventIDNumber)
     }
     const handleKeyPress = (event) => {
-        console.log("keypress: ", event.key);
         let eventTargetID = Number(event.target.id[event.target.id.length - 1]);
         let inputValue;
         let minutesValue;
@@ -37,7 +35,7 @@ function CreateActivity() {
         if (inputValue !== activitiesInput[focusInput].input || minutesValue !== activitiesInput[focusInput].minutes) {
             setActivitiesInput(prevState => {
                 let before = prevState.slice(0, eventTargetID);
-                let current = {index: eventTargetID, input: inputValue, minutes: minutesValue}
+                let current = {index: eventTargetID, input: inputValue, minutes: removeLeadingZeros(minutesValue)}
                 let after = prevState.slice(eventTargetID+1, prevState.length)
                 if (eventTargetID === 0) {
                     if (prevState.length - eventTargetID - 1 === 0) {
@@ -49,19 +47,12 @@ function CreateActivity() {
             })
         }
         if (event.key === "Backspace") {
-            console.log(eventTargetID, " ", isName, " ", inputValue.length, " ", minutesValue.length);
             if (eventTargetID !== 0 && inputValue.length === 0) {
-                console.log(activitiesInput.slice(0, focusInput));
-                console.log(activitiesInput.slice(focusInput+1, activitiesInput.length));
                 event.preventDefault();
                 setActivitiesInput(prevState => {
                     let before = prevState.slice(0, focusInput);
                     let after = prevState.slice(focusInput+1, prevState.length);
                     after = after.map(item => {return {index: item.index-1, input:item.input, minutes:item.minutes}});
-                    console.log("ALL POSSIBILITIES: ")
-                    console.log([...after]);
-                    console.log([...before]);
-                    console.log([...before, ...after]);
                     if (before.length === 0 && after.length === 0) return [{index: 0, input: "", minutes: 0}]; //theoretically can't happen but just in case
                     else if (before.length === 0) return [...after]
                     else if (after.length === 0) return [...before]
@@ -95,40 +86,39 @@ function CreateActivity() {
         textAreaRef.current.style.height = textAreaRef.current.scrollHeight + 3 + "px";
         textAreaRef.current.style.height = "";
     }
-    
+    const removeLeadingZeros = (str) => {
+        var i = 0;
+        while (str[i] === "0") {
+            i++;
+        }
+        return str.slice(i, str.length);
+    }
     const handleSubmitPress = (event) => {
-        console.log("testing: ", ("" == null));
         noNameWarningRef.current.style.display = "none";
         noNameWarningRef.current.style.visibility = "hidden";
         noTaskWarningRef.current.style.display = "none";
         noTaskWarningRef.current.style.visibility = "hidden";
         if (document.getElementById("create-activity-name").value.length === 0) {
-            console.log("lmao put a name");
             noNameWarningRef.current.style.display = "block";
             noNameWarningRef.current.style.visibility = "visible";
-            console.log("preventing dfeault because name");
             event.preventDefault();
         }
         for (var i = 0; i < activitiesInput.length; i++) {
-            console.log("CONDITIONS: ======================");
-            console.log(activitiesInput[i].input.length === 0)
-            console.log(typeof activitiesInput[i].minutes)
-            console.log(typeof activitiesInput[i].minutes === "undefined")
-            console.log(activitiesInput[i].minutes === "");
-            console.log("CONDITIONS DONE===================");
             if (activitiesInput[i].input.length === 0 || typeof activitiesInput[i].minutes === "undefined" || activitiesInput[i].minutes === "") {
                 noTaskWarningRef.current.style.display = "block";
                 noTaskWarningRef.current.style.visibility = "visible";
-                console.log("preventing default because tasks ar enot done");
                 event.preventDefault();
                 break;
             }
             
         }
-        
-        console.log(document.getElementById("create-activity-name").value);
-        console.log(textAreaRef.current.value);
-        console.log(JSON.stringify(activitiesInput));
+        localStorage.setItem("in-progress-activity", JSON.stringify(
+            {name: document.getElementById("create-activity-name").value,
+            description: textAreaRef.current.value,
+            tasks: JSON.stringify(activitiesInput.map((item) => {
+               return {input: item.input, total_minutes: removeLeadingZeros(item.minutes), elapsed_seconds: 0}
+            }))})
+        )
     }
     return (
         <div>
@@ -152,7 +142,7 @@ function CreateActivity() {
                                         id={"activity-input-" + item.index} 
                                         key={crypto.randomUUID()} 
                                         onFocus={handleOnFocus} 
-                                        onKeyDown={handleKeyPress} 
+                                        onKeyUp={handleKeyPress} 
                                         defaultValue={item.input} 
                                         type="text"
                                     />
@@ -161,7 +151,7 @@ function CreateActivity() {
                                     <label>Task Time (minutes)</label>
                                     <input 
                                         id={"activity-input-minutes-" + item.index} 
-                                        onKeyDown={handleKeyPress} 
+                                        onKeyUp={handleKeyPress} 
                                         onFocus={handleOnFocus} 
                                         type="number" 
                                         key={crypto.randomUUID()} 

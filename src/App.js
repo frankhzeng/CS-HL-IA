@@ -8,9 +8,7 @@ function App() {
   
   return (
     <BrowserRouter>
-      <div>
-        <Link to="/">Home</Link>
-      </div>
+      
       <Routes>
         <Route exact path="/" element={<Home/>}/>
         <Route exact path="/create" element={<CreateActivity/>}/>
