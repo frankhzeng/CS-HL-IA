@@ -44,13 +44,15 @@ function CreateActivity() {
             return [...before, current, ...after]
         })
         if (event.key === "Backspace") {
-            if (((eventTargetID !== 0) || (eventTargetID === 0 && !isName)) && inputValue.length === 0) {
-                if (isName) {
-                    setFocusInput(prevState => prevState - 1);
-                    setIsName(false);
-                } else {
-                    setIsName(true);
-                }
+            console.log(eventTargetID, " ", isName, " ", inputValue.length, " ", minutesValue.length);
+            if (eventTargetID !== 0 && inputValue.length === 0) {
+                console.log(activitiesInput.slice(0, focusInput));
+                console.log(activitiesInput.slice(focusInput, activitiesInput.length));
+                setFocusInput(prevState => prevState - 1);
+                setIsName(false);
+            }
+            if (!isName && minutesValue.length === 0) {
+                setIsName(true);
             }
         }
         if (event.key === "Enter") {
