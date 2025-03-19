@@ -1,0 +1,9 @@
+.focused {
+    border-radius: 5px;
+    border: 2px;
+    background-color: green;
+}
+#complete-activity-task-container {
+    margin: 15px;
+    padding: 10px;
+}

@@ -116,7 +116,7 @@ function CreateActivity() {
             {name: document.getElementById("create-activity-name").value,
             description: textAreaRef.current.value,
             tasks: JSON.stringify(activitiesInput.map((item) => {
-               return {input: item.input, total_minutes: removeLeadingZeros(item.minutes), elapsed_seconds: 0}
+               return {index: item.index, input: item.input, total_minutes: removeLeadingZeros(item.minutes), elapsed_seconds: 0, isFinished: false, isFocused: (item.index === 0 ? true : false)}
             }))})
         )
     }
