@@ -15,7 +15,26 @@ function CompleteActivity() {
 
     useEffect(() => {
         console.log("taskList: ", taskList);
+        setFocusCSS();
     }, [taskList])
+    function colorGradient(elapsed, total) {
+        let fadeFraction = elapsed / total;
+        console.log("FADE GFRACCTION: ", elapsed, " / ", total, " ",  fadeFraction);
+        if (fadeFraction > 1) return "#FF0000"
+        var gradient;
+        if (fadeFraction < 0.66) {
+            gradient = {red: Math.round((255 * (fadeFraction / (2/3)))), green: 255, blue: 0}
+        } else {
+            gradient = {red: 255, green: Math.round(255 - (255 * ((fadeFraction-(2/3)) / (1/3)))), blue: 0}
+        }
+    
+    
+        return "#" + rgbToHex(gradient.red) + rgbToHex(gradient.green) + rgbToHex(gradient.blue);
+    }
+    const rgbToHex = (c) => {
+        var h = c.toString(16);
+        return h.length === 1 ? "0" + h : h;
+    }
     const updateTimer = () => {
         console.log("updating timer")
         setTaskList((prevState) => {
@@ -53,9 +72,18 @@ function CompleteActivity() {
     }
     const setFocusCSS = () => {
         for (var i = 0; i < taskList.length; i++) {
+            let elapsed = taskList[i].elapsed_seconds;
+            let total = taskList[i].total_minutes * 60;
+            console.log(Math.floor(100 * elapsed/total));
+            let css = "linear-gradient(to right, " + colorGradient(elapsed, total) + " 0% " + Math.floor(100 * elapsed/total) + "%, transparent " + Math.floor(100 * elapsed/total) + "% 100%)"
+            console.log("style: ", css);
+            tasksRef.current[i].style.background = css;
             if (taskList[i].isFocused) {
                 tasksRef.current[i].className = 'focused';
                 console.log(tasksRef.current[i])
+            } else {
+                tasksRef.current[i].className = "";
+                console.log(tasksRef.current[i]);
             }
         }
     }

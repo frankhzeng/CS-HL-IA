@@ -1,9 +1,15 @@
 .focused {
-    border-radius: 5px;
-    border: 2px;
-    background-color: green;
+    box-shadow: 0 0 20px #9ecaed;
+    /* background: linear-gradient(
+        to right,
+        red 0 50%,
+        transparent 50% 100%); */
 }
 #complete-activity-task-container {
     margin: 15px;
     padding: 10px;
+    border: solid;
+    border-radius: 5px;
+    border-width: 2px;
+    border-color: black;
 }
