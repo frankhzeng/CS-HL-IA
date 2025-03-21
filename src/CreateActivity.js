@@ -8,6 +8,7 @@ function CreateActivity() {
     const textAreaRef = useRef()
     const noNameWarningRef = useRef();
     const noTaskWarningRef = useRef();
+    // localStorage.clear();
     useEffect(() => {
         var lastEditedElement = document.getElementById("activity-input-" + (isName? "" : "minutes-") + focusInput)
         lastEditedElement?.focus();
@@ -82,11 +83,13 @@ function CreateActivity() {
             }
         }
     }
+    
     const textAreaOnInputHandler = (event) => {
         textAreaRef.current.style.height = textAreaRef.current.scrollHeight + 3 + "px";
         textAreaRef.current.style.height = "";
     }
     const removeLeadingZeros = (str) => {
+        str = "" + str;
         var i = 0;
         while (str[i] === "0") {
             i++;

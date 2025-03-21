@@ -1,20 +1,21 @@
+import { useEffect } from "react";
+import "./ActivityList.css"
 function ActivityList() {
-    var items = [
-        {key: "1", text: "abc"}, 
-        {key: "2", text: "dfsdashrhafd"}
-      ];
+    var items = [];
+    
+    useEffect(() => {
+        // localStorage.clear();
+        console.log("stroke");
+        items = JSON.parse(localStorage.getItem("activities-list"));
+        console.log(items)
+        
+    }, [])
     
     return (
         <div id="ActivityList">
             <h3>Activities</h3>
-            <div>
-                <ul>
-                    <li>placeholder 2</li>
-                    <li>placeholder</li>
-                    {items.map((item) => {
-                        return <li key={item.key}>{item.text}</li>
-                    })}
-                </ul>
+            <div id="activity-list-view">
+                <p id="empty-list-text">(empty)</p>
             </div>
         </div>
     );
