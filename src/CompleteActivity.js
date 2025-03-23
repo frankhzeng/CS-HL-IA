@@ -89,6 +89,7 @@ function CompleteActivity() {
                     return index === finishIndex ? {index: item.index, input: item.input, total_minutes: item.total_minutes, elapsed_seconds: item.elapsed_seconds, isFinished: true, isFocused: item.isFocused} : item
                 })
             })
+            removeFocus();
             finalScreenRef.current.style.display = "block";
             var completedOverTime = 0;
             for (var j = 0; j < taskList.length; j++) {
@@ -133,15 +134,32 @@ function CompleteActivity() {
         // localStorage.clear();
         let totalList = localStorage.getItem("activities-list");
         console.log(totalList);
+        //get fraction of completed tasks on time
+        var completedOverTime = 0;
+        for (var j = 0; j < taskList.length; j++) {
+            if (taskList[j].elapsed_seconds >= taskList[j].total_minutes * 60) {
+                completedOverTime += 1;
+            }
+        }
+        var color = "";
+        let fraction = completedOverTime / taskList.length;
+        if (fraction <= 0.50) {
+            fraction = fraction / 0.50
+            color = "#" + rgbToHex(Math.floor(255 * fraction)) + rgbToHex(255) + rgbToHex(0);
+        } else {
+            fraction = (fraction - 0.50) / 0.50;
+            color = "#" + rgbToHex(255) + rgbToHex(Math.floor(255 - (255 * fraction))) + rgbToHex(0);
+        }
 
+        console.log( completedOverTime);
         if (!totalList) {
-            localStorage.setItem("activities-list", JSON.stringify([{name: activity.name, description: activity.description, tasks: JSON.stringify(taskList)}]))
+            localStorage.setItem("activities-list", JSON.stringify([{name: activity.name, description: activity.description, tasks: JSON.stringify(taskList), color: color}]))
             console.log("going");
         } else {
             console.log(totalList);
             let parsedList = JSON.parse(totalList);
             console.log(parsedList);
-            parsedList = [...parsedList, {name: activity.name, description: activity.description, tasks: JSON.stringify(taskList)}]
+            parsedList = [...parsedList, {name: activity.name, description: activity.description, tasks: JSON.stringify(taskList), color: color}]
             console.log(parsedList);
             localStorage.setItem("activities-list", JSON.stringify(parsedList));
             // event.preventDefault()
