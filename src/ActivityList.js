@@ -7,18 +7,17 @@ function ActivityList() {
     const itemsRefs = useRef([]);
     useEffect(() => {
         // localStorage.clear();
-        console.log("stroke");
-        setItems(JSON.parse(localStorage.getItem("activities-list")) || []);
+        setItems(JSON.parse(localStorage.getItem("activities-list")) || []); //runs only once, unpacks local storage into the items state
         console.log(items)
         emptyListTextRef.current.style.display = "none";
         if (items.length === 0) {
-            console.log("??????");
-            emptyListTextRef.current.style.display = "block";
+            emptyListTextRef.current.style.display = "block"; //renders an (empty) text box when there's nothing in the list
         }
     }, [])
     useEffect(() => {
         for (var i = 0; i < items.length; i++) {
-            itemsRefs.current[i].style.backgroundColor = items[i].color;
+            itemsRefs.current[i].style.backgroundColor = items[i].color; //every time the items array changes matcvh the colors to the color given in local storage
+            //put this in a separate ref linked to items to make sure the state changes by the time this happens
         }
     }, [items])
     return (
@@ -26,7 +25,6 @@ function ActivityList() {
             <h3>Activities</h3>
             <div id="activity-list-view">
                 <p id="empty-list-text" ref={emptyListTextRef}>(empty)</p>
-                <button onClick={() => {localStorage.clear()}}>clear local storage</button>
                 {console.log(items)}
                 {items.map((item, index) => {
                     console.log(items);

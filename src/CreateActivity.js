@@ -2,18 +2,18 @@ import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import './CreateActivity.css'
 function CreateActivity() {
-    const [activitiesInput, setActivitiesInput] = useState([{index: 0, input: "", minutes: 5}]);
-    const [focusInput, setFocusInput] = useState(0);
-    const [isName, setIsName] = useState(true);
-    const textAreaRef = useRef()
-    const noNameWarningRef = useRef();
-    const noTaskWarningRef = useRef();
+    const [activitiesInput, setActivitiesInput] = useState([{index: 0, input: "", minutes: 5}]); // stores the task names and durations from user input
+    const [focusInput, setFocusInput] = useState(0); //index of the input box to keep the typing cursor in
+    const [isName, setIsName] = useState(true); //boolean for whether the focus is in the text box or the duration box
+    const textAreaRef = useRef() //ref holding the description input
+    const noNameWarningRef = useRef(); //ref holding some text in red to be shown when the user submits with an empty name box
+    const noTaskWarningRef = useRef(); //ref holding some text in red to be shown when the user submits without completing a task name/duration box
     // localStorage.clear();
-    useEffect(() => {
+    useEffect(() => { //whenever any variables change update the focused box accordingly
         var lastEditedElement = document.getElementById("activity-input-" + (isName? "" : "minutes-") + focusInput)
         lastEditedElement?.focus();
     }, [activitiesInput, focusInput, isName])
-    const handleOnFocus = (event) => {
+    const handleOnFocus = (event) => { //this was made to handle a weird re-rendering error that would remove focus
         let eventIDNumber = (Number(event.target.id[event.target.id.length - 1]))
         if (event.target.id === "activity-input-minutes-" + eventIDNumber) {
             setIsName(false)
@@ -23,9 +23,11 @@ function CreateActivity() {
         setFocusInput(eventIDNumber)
     }
     const handleKeyPress = (event) => {
+        //get the index where the key was pressed in
         let eventTargetID = Number(event.target.id[event.target.id.length - 1]);
         let inputValue;
         let minutesValue;
+        //get both name and duration of the task and put it into the above variables
         if (!isName) {
             minutesValue = event.target.value;
             inputValue = document.getElementById("activity-input-"+ eventTargetID).value
@@ -33,6 +35,7 @@ function CreateActivity() {
             inputValue = event.target.value;
             minutesValue = document.getElementById("activity-input-minutes-" + eventTargetID).value;
         }
+        //if there's a change, update the state holding the task names/durations. if not, don't reupdate as that will cause focus issues
         if (inputValue !== activitiesInput[focusInput].input || minutesValue !== activitiesInput[focusInput].minutes) {
             setActivitiesInput(prevState => {
                 let before = prevState.slice(0, eventTargetID);
@@ -47,7 +50,9 @@ function CreateActivity() {
                 return [...before, current, ...after]
             })
         }
+        
         if (event.key === "Backspace") {
+            //if we're not on the first one, change focus to the input before and then set the focus to the minute box
             if (eventTargetID !== 0 && inputValue.length === 0) {
                 event.preventDefault();
                 setActivitiesInput(prevState => {
@@ -61,12 +66,14 @@ function CreateActivity() {
                 })
                 setIsName(false);
                 setFocusInput(prevState => prevState - 1);
-            }
+            } //if we are on any minute box simply change the focus to the text box at the same input
             if (!isName && minutesValue.length === 0) {
                 event.preventDefault();
                 setIsName(true);
             }
-        }
+            //event.preventDefault() prevents the deletion from going through in this case, so when the focus changes to the new text box no characters are deleted
+            //those two if statements cover every scenario except for when delete is pressed on an empty very first text box, where there kind of isn't anywhere to go so nothing gets run here
+        } //same idea here, when enter is pressed move forward a box
         if (event.key === "Enter") {
             let lastIndex = Number(activitiesInput[activitiesInput.length-1].index)
             if (eventTargetID === lastIndex && !isName) {
@@ -83,11 +90,13 @@ function CreateActivity() {
             }
         }
     }
-    
+    //these two lines are called every keydown on the text area and changes its size to fit the input
     const textAreaOnInputHandler = (event) => {
         textAreaRef.current.style.height = textAreaRef.current.scrollHeight + 3 + "px";
         textAreaRef.current.style.height = "";
     }
+    //this is called for every key press to remove leading zeros on the minute input
+    //prevents timers going for "09:00" minutes and just gives "9:00" minutes
     const removeLeadingZeros = (str) => {
         str = "" + str;
         var i = 0;
@@ -96,6 +105,7 @@ function CreateActivity() {
         }
         return str.slice(i, str.length);
     }
+    //this handles which error messages to display under which conditions.
     const handleSubmitPress = (event) => {
         noNameWarningRef.current.style.display = "none";
         noNameWarningRef.current.style.visibility = "hidden";
@@ -106,6 +116,7 @@ function CreateActivity() {
             noNameWarningRef.current.style.visibility = "visible";
             event.preventDefault();
         }
+        //loop through all of the values to see which ones are empty
         for (var i = 0; i < activitiesInput.length; i++) {
             if (activitiesInput[i].input.length === 0 || typeof activitiesInput[i].minutes === "undefined" || activitiesInput[i].minutes === "") {
                 noTaskWarningRef.current.style.display = "block";
@@ -115,11 +126,17 @@ function CreateActivity() {
             }
             
         }
+        //if event.preventDefault() isn't run, it won't go to the next screen
+        // and while this might be saved it's impossible to go to the complete activity screen with this being set to the wrong thing
         localStorage.setItem("in-progress-activity", JSON.stringify(
             {name: document.getElementById("create-activity-name").value,
             description: textAreaRef.current.value,
             tasks: JSON.stringify(activitiesInput.map((item) => {
-               return {index: item.index, input: item.input, total_minutes: removeLeadingZeros(item.minutes), elapsed_seconds: 0, isFinished: false, isFocused: (item.index === 0 ? true : false)}
+               return {index: item.index, input: 
+                item.input, total_minutes: removeLeadingZeros(item.minutes), 
+                elapsed_seconds: 0, 
+                isFinished: false, 
+                isFocused: (item.index === 0 ? true : false)}
             }))}))
     }
     return (
@@ -133,7 +150,7 @@ function CreateActivity() {
                     </div>
                     <div className="activity-static-input-container">
                         <label>Description</label>
-                        <textarea ref={textAreaRef} id="create-activity-description" onInput={textAreaOnInputHandler}></textarea>
+                        <textarea ref={textAreaRef} id="create-activity-description" onInput={textAreaOnInputHandler} key={crypto.randomUUID}></textarea>
                     </div>
                     <div id="activity-input-container">
                         {activitiesInput.map((item) =>
@@ -142,7 +159,7 @@ function CreateActivity() {
                                     <label>Task Name</label>
                                     <input 
                                         id={"activity-input-" + item.index} 
-                                        key={crypto.randomUUID()} 
+                                        key={crypto.randomUUID} 
                                         onFocus={handleOnFocus} 
                                         onKeyUp={handleKeyPress} 
                                         defaultValue={item.input} 
@@ -156,7 +173,7 @@ function CreateActivity() {
                                         onKeyUp={handleKeyPress} 
                                         onFocus={handleOnFocus} 
                                         type="number" 
-                                        key={crypto.randomUUID()} 
+                                        key={crypto.randomUUID} 
                                         defaultValue={item.minutes}
                                     />
                                 </div>

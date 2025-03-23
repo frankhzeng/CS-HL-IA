@@ -2,24 +2,25 @@ import { useRef, useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import './CompleteActivity.css'
 function CompleteActivity() {
-    const tasksRef = useRef([]);
-    const finalScreenRef = useRef();
-    const resultsPRef = useRef();
-    var activity = JSON.parse(localStorage.getItem("in-progress-activity"))
-    var list_from_json = JSON.parse(activity.tasks);
-    const [taskList, setTaskList] = useState(list_from_json);
-    const secondsToMinutes = (seconds) => {
+    const tasksRef = useRef([]); //holds refs to every task display element
+    const finalScreenRef = useRef(); //holds ref to the final screen element (you're finished! screen)
+    const resultsPRef = useRef(); //holds ref to the <p> element showing results (you finished x out of y activites in time)
+    var activity = JSON.parse(localStorage.getItem("in-progress-activity")) //get the activity from local storage
+    var list_from_json = JSON.parse(activity.tasks); //convert the task list from the activity to its own list
+    const [taskList, setTaskList] = useState(list_from_json); //convert it into a state
+    const secondsToMinutes = (seconds) => { //this changes the elapsed_seconds number to a timer format (00:00)
         return Math.floor(seconds/60) + ":" + ((seconds % 60).toString().length === 1 ? "0" : "") + (seconds % 60);
     }
     useEffect(() => {
-        setInterval(() => { updateTimer() }, 1000); 
+        setInterval(() => { updateTimer() }, 1000); //run updateTimer() every 1s to create the timer.
+        //react.strictmode in I think the app.js file needed to be deleted because it made every one of these functions run twice
     }, [])
 
     useEffect(() => {
-        console.log("taskList: ", taskList);
-        setFocusCSS();
+        setFocusCSS(); //every time the task list is changed redo the focus css on the elements
     }, [taskList])
-    function colorGradient(elapsed, total) {
+    function colorGradient(elapsed, total) { //takes the fraction of the time elapsed and converts it to a color
+        //green for lots of time left, red for no time left
         let fadeFraction = elapsed / total;
         if (fadeFraction > 1) return "#FF0000"
         var gradient;
@@ -32,61 +33,93 @@ function CompleteActivity() {
     
         return "#" + rgbToHex(gradient.red) + rgbToHex(gradient.green) + rgbToHex(gradient.blue);
     }
+    //takes a single integer (0-255) and converts it to a hex code (00-FF)
     const rgbToHex = (c) => {
         var h = c.toString(16);
         return h.length === 1 ? "0" + h : h;
     }
-    const updateTimer = () => {
+    const updateTimer = () => { //change the state to be the previous state but with focused elements' elapsed_seconds property incremented by one
         setTaskList((prevState) => {
             return prevState.map((item) => {
-                return {index: item.index, input: item.input, total_minutes: item.total_minutes, elapsed_seconds: item.elapsed_seconds+(item.isFocused * 10), isFinished: item.isFinished, isFocused: item.isFocused}
+                return {
+                    index: item.index, 
+                    input: item.input, 
+                    total_minutes: item.total_minutes, 
+                    elapsed_seconds: item.elapsed_seconds+(item.isFocused), //if the item is focused, increment the timer by 1 (boolean value of true)
+                    isFinished: item.isFinished, isFocused: item.isFocused
+                }
             })
         })
     }
     
     const setFocus = (focusIndex) => {
-        tasksRef.current[focusIndex].style.borderColor = "#000000"
+        tasksRef.current[focusIndex].style.borderColor = "#000000" //reset css denoting finished ones
         setTaskList((prevState) => {
             return prevState.map((item, index) => {
-                return {index: item.index, input: item.input, total_minutes: item.total_minutes, elapsed_seconds: item.elapsed_seconds, isFinished: item.isFinished && (index !== focusIndex), isFocused: (index === focusIndex ? true : false)}
+                return {
+                    index: item.index, 
+                    input: item.input, 
+                    total_minutes: item.total_minutes, 
+                    elapsed_seconds: item.elapsed_seconds, 
+                    isFinished: item.isFinished && (index !== focusIndex), //if you press run on an element, it should be marked not finished
+                    isFocused: (index === focusIndex ? true : false)
+                }
             })
         })
     }
     const removeFocus = () => {
         setTaskList((prevState) => {
             return prevState.map((item, index) => {
-                return {index: item.index, input: item.input, total_minutes: item.total_minutes, elapsed_seconds: item.elapsed_seconds, isFinished: item.isFinished, isFocused: false}
+                return {
+                    index: item.index, 
+                    input: item.input, 
+                    total_minutes: item.total_minutes, 
+                    elapsed_seconds: item.elapsed_seconds, 
+                    isFinished: item.isFinished, 
+                    isFocused: false //reset every single element to not be focused (effectively pause all timers)
+                }
             })
         })
     }
-    const changeFocusAndFinish = (focusIndex, finishIndex) => {
-        console.log("chnagefocus and finsh: ", focusIndex, " ", finishIndex)
+    const changeFocusAndFinish = (focusIndex, finishIndex) => { //both marks the current index as finished and also changes the focus index 
         setTaskList((prevState) => {
             return prevState.map((item, index) => {
-                return {index: item.index, input: item.input, total_minutes: item.total_minutes, elapsed_seconds: item.elapsed_seconds, isFinished: item.isFinished || (item.index === finishIndex), isFocused: (index === focusIndex ? true : false)}
+                return {
+                    index: item.index, 
+                    input: item.input, 
+                    total_minutes: item.total_minutes, 
+                    elapsed_seconds: item.elapsed_seconds, 
+                    isFinished: item.isFinished || (item.index === finishIndex), 
+                    isFocused: (index === focusIndex ? true : false)}
             })
         })
     }
     const finishTask = (finishIndex) => {
-        console.log("finish index ", finishIndex);
         tasksRef.current[finishIndex].style.borderColor = "#00FF00"
         var fullyCompleted = true;
+        //idea here is to fidn the first incomplete task that isn't the current one and mark that as completed
         for (var i = 0; i < taskList.length; i++) {
             if (i === finishIndex) continue;
             let item = taskList[i];
             console.log(item);
             if (!item.isFinished) {
-                console.log("set foucs to ", item.index)
                 changeFocusAndFinish(item.index, finishIndex);
                 fullyCompleted = false;
                 break;
             }
         }
         if (fullyCompleted) {
-            //all of the tasks are finished
+            //all of the tasks are finished, open the end result screen
             setTaskList((prevState) => {
                 return prevState.map((item, index) => {
-                    return index === finishIndex ? {index: item.index, input: item.input, total_minutes: item.total_minutes, elapsed_seconds: item.elapsed_seconds, isFinished: true, isFocused: item.isFocused} : item
+                    return index === finishIndex ? 
+                        {index: item.index, 
+                            input: item.input, 
+                            total_minutes: item.total_minutes, 
+                            elapsed_seconds: item.elapsed_seconds, 
+                            isFinished: true, isFocused: item.isFocused} 
+                        :
+                        item
                 })
             })
             removeFocus();
@@ -96,7 +129,7 @@ function CompleteActivity() {
                 if (taskList[j].elapsed_seconds >= taskList[j].total_minutes * 60) {
                     completedOverTime += 1;
                 }
-            }
+            } //get a color based on how many of the tasks were done in the time they set
             var color = "";
             let fraction = completedOverTime / taskList.length;
             if (fraction <= 0.50) {
@@ -112,11 +145,13 @@ function CompleteActivity() {
             resultsPRef.current.textContent = "You completed " + (taskList.length - completedOverTime) + " out of " + taskList.length + " tasks in time.";
         }
     }
-    const setFocusCSS = () => {
+    const setFocusCSS = () => {//fills some % of the task div with the color based on its progress
+        //ie. 10% of the timer woudl be green with the tiniest bit of yellow, 50% is yellow, 100% is red
         for (var i = 0; i < taskList.length; i++) {
             let elapsed = taskList[i].elapsed_seconds;
             let total = taskList[i].total_minutes * 60;
-            let css = "linear-gradient(to right, " + colorGradient(elapsed, total) + " 0% " + Math.floor(100 * elapsed/total) + "%, transparent " + Math.floor(100 * elapsed/total) + "% 100%)"
+            let css = "linear-gradient(to right, " + 
+                    colorGradient(elapsed, total) + " 0% " + Math.floor(100 * elapsed/total) + "%, transparent " + Math.floor(100 * elapsed/total) + "% 100%)"
             tasksRef.current[i].style.background = css;
             if (taskList[i].isFocused) {
                 tasksRef.current[i].className = 'focused';
@@ -126,7 +161,6 @@ function CompleteActivity() {
         }
     }
     const handleResume = () => {
-        console.log("working?");
         removeFocus();
         finalScreenRef.current.style.display = "none";
     }
@@ -149,9 +183,10 @@ function CompleteActivity() {
         } else {
             fraction = (fraction - 0.50) / 0.50;
             color = "#" + rgbToHex(255) + rgbToHex(Math.floor(255 - (255 * fraction))) + rgbToHex(0);
-        }
+        } //get this color so it looks red if you consistently can't do things on time on the front page
 
-        console.log( completedOverTime);
+        //if there's nothing in localstorage here, just put it in.
+        //if there is something already, take it out, unpack it, and then add the current one and stuff it all back into local storage
         if (!totalList) {
             localStorage.setItem("activities-list", JSON.stringify([{name: activity.name, description: activity.description, tasks: JSON.stringify(taskList), color: color}]))
             console.log("going");
@@ -185,7 +220,6 @@ function CompleteActivity() {
             <h1>You're Finished!</h1>
             <p ref={resultsPRef}>placeholder</p>
             <button onClick={handleResume}>Resume</button>
-            <button onClick={portToHome}>;kdsjfLKJF:LKDSJF:LKSJF:LKDSJF:Lk</button>
             <Link onClick={portToHome} id="complete-activity-home" to="/">Home</Link>
         </div>
     </div>
