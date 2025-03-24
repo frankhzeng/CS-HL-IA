@@ -8,13 +8,12 @@ function ActivityList() {
     useEffect(() => {
         // localStorage.clear();
         setItems(JSON.parse(localStorage.getItem("activities-list")) || []); //runs only once, unpacks local storage into the items state
-        console.log(items)
+    }, [])
+    useEffect(() => {
         emptyListTextRef.current.style.display = "none";
         if (items.length === 0) {
             emptyListTextRef.current.style.display = "block"; //renders an (empty) text box when there's nothing in the list
         }
-    }, [])
-    useEffect(() => {
         for (var i = 0; i < items.length; i++) {
             itemsRefs.current[i].style.backgroundColor = items[i].color; //every time the items array changes matcvh the colors to the color given in local storage
             //put this in a separate ref linked to items to make sure the state changes by the time this happens
