@@ -13,7 +13,7 @@ function CreateActivity() {
         var lastEditedElement = document.getElementById("activity-input-" + (isName? "" : "minutes-") + focusInput)
         lastEditedElement?.focus();
     }, [activitiesInput, focusInput, isName])
-    const handleOnFocus = (event) => { //this was made to handle a weird re-rendering error that would remove focus
+    const handleOnFocus = (event) => { //this was made change the focus input when the user manually changed the focused box.
         let eventIDNumber = (Number(event.target.id[event.target.id.length - 1]))
         if (event.target.id === "activity-input-minutes-" + eventIDNumber) {
             setIsName(false)

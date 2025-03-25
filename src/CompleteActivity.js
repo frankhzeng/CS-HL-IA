@@ -29,8 +29,6 @@ function CompleteActivity() {
         } else {
             gradient = {red: 255, green: Math.round(255 - (255 * ((fadeFraction-(2/3)) / (1/3)))), blue: 0}
         }
-    
-    
         return "#" + rgbToHex(gradient.red) + rgbToHex(gradient.green) + rgbToHex(gradient.blue);
     }
     //takes a single integer (0-255) and converts it to a hex code (00-FF)
@@ -165,7 +163,6 @@ function CompleteActivity() {
         finalScreenRef.current.style.display = "none";
     }
     const portToHome = (event) => {
-        // localStorage.clear();
         let totalList = localStorage.getItem("activities-list");
         console.log(totalList);
         //get fraction of completed tasks on time
